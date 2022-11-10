@@ -41,7 +41,13 @@ function verifyJWT(req, res, next) {
 async function run() {
     try {
         const photographyCollection = client.db('weedingPHghy').collection('services');
-        const reviewCollection= client.db('weedingPHghy').collection('reviews');
+        const reviewCollection = client.db('weedingPHghy').collection('reviews');
+        
+        app.post('/jwt', (req, res) => {
+            const user = req.body;
+            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1d' })
+            res.send({ token })
+        })  
 
         //services Api
         app.get('/services', async (req, res) => {
@@ -89,7 +95,11 @@ async function run() {
             const result = await reviewCollection.insertOne(review)
             res.send(result)
         });
-        app.get('/myReview', async (req, res) => {
+        app.get('/myReview', verifyJWT, async (req, res) => {
+            const decoded = req.decoded;
+            if (decoded.email !== req.query.email) {
+              return  res.status(403).send({ message: 'unauthorized access' })
+            }
             const email = req.query.email;
             // console.log(email);
             const query = { email }
