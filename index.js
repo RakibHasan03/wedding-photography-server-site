@@ -42,6 +42,7 @@ async function run() {
     try {
         const photographyCollection = client.db('weedingPHghy').collection('services');
         const reviewCollection = client.db('weedingPHghy').collection('reviews');
+        const bookingCollection = client.db('weedingPHghy').collection('bookings');
         
         app.post('/jwt', (req, res) => {
             const user = req.body;
@@ -137,6 +138,38 @@ async function run() {
             }
             const result = await reviewCollection.updateOne(filter, updateReview, option);
             res.send(result);
+        })
+
+        // get booking
+        app.get('/bookings', async (req, res) => {
+            const email = req.query.email;
+            const query = { email: email };
+            const bookings = await bookingCollection.find(query).toArray();
+            res.send(bookings);
+        });
+        //post booking 
+        app.post('/bookings', async (req, res) => {
+            const booking = req.body;
+            // console.log(booking);
+
+
+            const query = {
+                productId: booking.productId,
+                email: booking.email
+
+            }
+
+            const alreadyBooked = await bookingCollection.find(query).toArray();
+
+            if (alreadyBooked.length) {
+                const message = `You already have a booking for ${booking.ProductTitle}`
+                return res.send({ acknowledged: false, message })
+            }
+
+
+            const result = await bookingCollection.insertOne(booking);
+            res.send(result);
+            
         })
     
     }
