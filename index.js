@@ -40,6 +40,8 @@ function verifyJWT(req, res, next) {
 // console.log(uri)
 async function run() {
     try {
+
+        const usersCollection = client.db('weedingPHghy').collection('users');
         const photographyCollection = client.db('weedingPHghy').collection('services');
         const reviewCollection = client.db('weedingPHghy').collection('reviews');
         const bookingCollection = client.db('weedingPHghy').collection('bookings');
@@ -57,6 +59,31 @@ async function run() {
             const services = await cursor.toArray();
             res.send(services);
         });
+
+        // user
+        app.post('/users', async (req, res) => {
+            const user = req.body;
+            // console.log(user);
+            const result = await usersCollection.insertOne(user);
+            res.send(result);
+        });
+
+        app.get('/users', async (req, res) => {
+            const query = {};
+            const users = await usersCollection.find(query).toArray();
+            res.send(users);
+        });
+
+        //admin
+        app.get('/users/admin/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { email }
+            const user = await usersCollection.findOne(query);
+            res.send({ isAdmin: user?.role === 'Admin' });
+        });
+
+        //service
+
         app.post('/services', async (req, res) => {
             const service = req.body;
             // console.log(service)
